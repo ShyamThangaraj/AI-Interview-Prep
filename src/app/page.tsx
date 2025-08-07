@@ -56,14 +56,14 @@ export default function Home() {
         className="absolute left-[71%] top-[40%] w-[30rem] h-[13rem] bg-contain bg-no-repeat bg-center text-sm leading-tight break-words text-black font-mono px-[9rem] pt-[5.3rem] text-center hidden sm:block"
         style={{ backgroundImage: 'url("/cloud.png")' }}
       >
-        “It even helped me with behavioral questions!”<br />— Rina
+        “It even helped me with behavioral questions.”<br />— Rina
       </div>
 
       <div
         className="absolute left-[58%] top-[70%] w-[30rem] h-[13rem] bg-contain bg-no-repeat bg-center text-sm leading-tight break-words text-black font-mono px-[9rem] pt-[5.3rem] text-center hidden sm:block"
         style={{ backgroundImage: 'url("/cloud.png")' }}
       >
-        “Way better than blind LeetCode prep.”<br />— Marcus
+        “Way better than blind LeetCode prep”<br />— Marcus
       </div>
       {/* Hero Section */}
       <div className="flex flex-1 items-center justify-center relative text-center mt-7">
