@@ -27,7 +27,7 @@ export default function Home() {
         className="absolute left-[20%] top-[13%] w-[30rem] h-[13rem] bg-contain bg-no-repeat bg-center text-sm leading-tight break-words text-black font-mono px-[9rem] pt-[5.3rem] text-center hidden sm:block"
         style={{ backgroundImage: 'url("/cloud.png")' }}
       >
-        “Helped me land my dream job at Google.”<br />— Aishwarya
+        “Helped me land my dream job at Google”<br />— Aishwarya
       </div>
 
       <div
