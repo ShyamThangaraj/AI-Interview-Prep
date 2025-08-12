@@ -105,6 +105,16 @@ export default function UserDashboard() {
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">Welcome to your DREAMTERVIEW dashboard!</p>
           </div>
+
+          {/* LeetCode Button */}
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/leetcode/two-sum" // change slug if you want dynamic
+              className="px-4 py-2 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black rounded transition"
+            >
+              View LeetCode Question
+            </Link>
+          </div>
         </div>
       </div>
     </main>
