@@ -12,9 +12,7 @@ export function supabaseFromRequest(req: NextRequest, res: NextResponse) {
 
   return createServerClient(url, key, {
     cookies: {
-      get(name: string) {
-        return req.cookies.get(name)?.value;
-      },
+      get(name: string) { return req.cookies.get(name)?.value; },
       set(name: string, value: string, options: CookieOptions) {
         res.cookies.set({ name, value, ...options });
       },
