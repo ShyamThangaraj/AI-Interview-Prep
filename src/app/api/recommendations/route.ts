@@ -19,13 +19,11 @@ export async function GET(req: NextRequest) {
   const res = new NextResponse();
   const supabase = supabaseFromRequest(req, res);
 
-  // 1) Auth
   const { data: auth } = await supabase.auth.getUser();
   if (!auth?.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2) Load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id,email,full_name,target_role,experience_level,focus_topics,strengths,challenges")
@@ -36,26 +34,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
 
-  // 3) Prompt
-  const system = `
+ const system = `
 You are a senior interview coach.
 Given a user's profile, output:
 1) "schema": GraphQL SDL named "InterviewPrep" with:
    enum Difficulty { EASY MEDIUM HARD }
-   type Recommendation { tagSlug: String!, tagName: String!, difficulty: Difficulty!, count: Int!, reason: String! }
-   type Query { recommendedProblems: [Recommendation!]! }
-2) "recommendations": 6–10 items mixing tags and difficulty tailored to the profile.
-   Use real LeetCode tag slugs (e.g., "two-pointers","binary-search","dynamic-programming","graph","heap","sliding-window","tree","trie","backtracking","greedy").
-3) For each item, include "exampleQuery" using LeetCode's operation "problemsetQuestionList" with variables for tag slug and difficulty.
-Return a single JSON object ONLY.
-  `;
+   type Question { slug: String!, title: String!, difficulty: Difficulty!, reason: String! }
+   type Query { recommendedQuestions: [Question!]! }
+2) "recommendations": 8–12 specific LeetCode questions tailored to the profile.
+   - Use real LeetCode problem slugs (e.g., "two-sum","valid-parentheses","container-with-most-water","merge-intervals","median-of-two-sorted-arrays").
+   - Titles must match the slug (Groq can infer common titles).
+   - difficulty must be one of EASY, MEDIUM, HARD.
+   - reason is a one–sentence rationale tied to the user's profile.
+3) Do NOT include tag names or counts. Do NOT include example GraphQL queries.
+4) Return a SINGLE JSON object with exactly: { "schema": string, "recommendations": Question[] }.
+`;
 
   const payload = {
     profile,
     guidance: { maxTotalCount: 25, preferFreshPracticeMix: true },
   };
 
-  // 4) Call Groq (OpenAI-compatible)
   const completion = await groq.chat.completions.create({
     model: process.env.GROQ_MODEL || "llama3-70b-8192",
     temperature: 0.2,
@@ -67,7 +66,6 @@ Return a single JSON object ONLY.
 
   const raw = completion.choices[0]?.message?.content ?? "{}";
 
-  // 5) Parse JSON robustly
   function safeParseJson(s: string) {
     try { return JSON.parse(s); } catch {}
     const a = s.indexOf("{"), b = s.lastIndexOf("}");
@@ -81,18 +79,14 @@ Return a single JSON object ONLY.
     return NextResponse.json({ error: "LLM returned invalid JSON" }, { status: 502 });
   }
 
-  // 6) Add LeetCode filter links
   const withLinks = {
-    ...parsed,
-    recommendations: (parsed.recommendations ?? []).map((r: any) => {
-      const diff =
-        r.difficulty === "EASY" ? "Easy" :
-        r.difficulty === "HARD" ? "Hard" : "Medium";
-      const leetcodeUrl =
-        `https://leetcode.com/problemset/?topicSlugs=${encodeURIComponent(r.tagSlug)}&difficulty=${diff}`;
-      return { ...r, leetcodeUrl };
-    }),
-  };
+  ...parsed,
+  recommendations: (parsed.recommendations ?? []).map((r: any) => {
+    const slug = r.slug || r.titleSlug || "";
+    const leetcodeUrl = slug ? `https://leetcode.com/problems/${slug}/` : undefined;
+    return { ...r, leetcodeUrl };
+  }),
+};
 
   return NextResponse.json(withLinks, { status: 200, headers: res.headers });
 }
